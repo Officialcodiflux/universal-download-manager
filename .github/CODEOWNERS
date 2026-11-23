@@ -1,0 +1,10 @@
+# Security-sensitive changes require the repository owner's review.
+/.github/ @Officialcodiflux
+/package.json @Officialcodiflux
+/package-lock.json @Officialcodiflux
+/tests/ @Officialcodiflux
+/integration/ @Officialcodiflux
+/desktop/ @Officialcodiflux
+/core/ @Officialcodiflux
+/extension/ @Officialcodiflux
+/build/ @Officialcodiflux
