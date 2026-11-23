@@ -58,6 +58,10 @@ async function registerBrowser({ browser, extensionId }, { dataDirectory, integr
     await fs.cp(path.join(integrationRoot, 'extension'), extensionPath, { recursive: true });
     await fs.copyFile(path.join(extensionPath, 'manifest.firefox.json'), path.join(extensionPath, 'manifest.json'));
   }
+  // Brave on Windows looks up native hosts under Google\Chrome, not only its
+  // own key. Allow Brave's extension in the shared Chrome manifest too, or
+  // Brave reports "Access to the specified native messaging host is forbidden".
+  if (browser === 'Brave') await registerBrowser({ browser: 'Chrome', extensionId }, { dataDirectory, integrationRoot });
   return { ok: true, manifestPath, extensionPath };
 }
 // Read only extension registrations, never browser history, cookies, or page data.
