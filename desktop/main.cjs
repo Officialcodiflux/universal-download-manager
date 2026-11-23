@@ -300,7 +300,13 @@ if (process.argv.includes('--native-host')) {
         { label: 'File', submenu: [ { label: 'Download properties…', click: command('details') }, { label: 'Remove selected', accelerator: 'Delete', click: command('remove') }, { label: 'Remove completed downloads', click: command('removeCompleted') } ] },
         { label: 'Downloads', submenu: [ { label: 'Pause all', click: command('pauseAll') }, { label: 'Stop all', click: command('pauseAll') }, { type: 'separator' }, { label: 'Delete all completed', click: command('removeCompleted') }, { type: 'separator' }, { label: 'Find', accelerator: 'CmdOrCtrl+F', click: command('find') }, { type: 'separator' }, { label: 'Scheduler…', click: command('scheduler') }, { label: 'Start queue', click: command('resumeAll') }, { label: 'Stop queue', click: command('pauseAll') }, { label: 'Speed limiter…', click: command('settings') }, { type: 'separator' }, { label: 'Options…', click: command('settings') } ] },
         { label: 'View', submenu: [ { label: 'All downloads', click: command('all') }, { role: 'togglefullscreen' }, { type: 'separator' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'resetZoom' } ] },
-        { label: 'Help', submenu: [ { label: 'Browser integration…', click: command('integration') }, { label: 'Check for updates…', click: () => updateController?.check({ manual: true }) }, { type: 'separator' }, { label: 'About UDM', click: () => dialog.showMessageBox(window, { title: 'About UDM', message: `UDM ${app.getVersion()}`, detail: 'Download manager with browser integration. Original implementation inspired by IDM. Full IDM feature parity is in development.' }) } ] }
+        { label: 'Help', submenu: [ { label: 'Browser integration…', click: command('integration') }, { label: 'Check for updates…', click: () => updateController?.check({ manual: true }) }, { type: 'separator' }, { label: 'About UDM', click: async () => {
+          const homepage = 'https://github.com/Officialcodiflux/universal-download-manager';
+          const { response } = await dialog.showMessageBox(window, { type: 'none', icon: appIconPath, title: 'About UDM', message: `UDM - Universal Download Manager ${app.getVersion()}`,
+            detail: `Download Faster. Manage Everything.\n\nDeveloped by Codiflux.\n© ${new Date().getFullYear()} Codiflux. Released under the MIT License.\n\n${homepage}`,
+            buttons: ['OK', 'Visit website'], defaultId: 0, cancelId: 0, noLink: true });
+          if (response === 1) await shell.openExternal(homepage);
+        } } ] }
       ]));
       engine.on('change', async () => {
         await fileIcons.load(engine.downloads);

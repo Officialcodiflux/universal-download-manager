@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/Officialcodiflux/universal-download-manager/issues"
   },
-  "author": "UDM contributors",
+  "author": "Codiflux",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
