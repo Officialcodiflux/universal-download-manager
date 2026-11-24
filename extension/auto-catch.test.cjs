@@ -4,7 +4,7 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 const path=require('node:path');
 function harness({nativeOk=true,autoCatch}={}) {
-  const native=[],cancelled=[],erased=[],data={};
+  const native=[],cancelled=[],erased=[],restarted=[],data={};
   if(autoCatch!==undefined)data.autoCatch=autoCatch;
   let onCreated;
   const ev={addListener(){},removeListener(){}};
@@ -15,10 +15,10 @@ function harness({nativeOk=true,autoCatch}={}) {
     tabs:{onRemoved:ev,onUpdated:ev,async sendMessage(){return {ok:true};}},
     contextMenus:{onClicked:ev,create(){},async removeAll(){}},
     action:{async setBadgeText(){}},
-    downloads:{onCreated:{addListener(fn){onCreated=fn;}},async cancel(id){cancelled.push(id);},async erase(query){erased.push(query);}}
+    downloads:{onCreated:{addListener(fn){onCreated=fn;}},async cancel(id){cancelled.push(id);},async erase(query){erased.push(query);},async download(options){restarted.push(options.url);return 1;}}
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'background.js'),'utf8'),{browser,URL,URLSearchParams,Uint8Array,btoa:value=>Buffer.from(value,'binary').toString('base64'),youtubeMedia:require('./youtube-media.js')});
-  return {native,cancelled,erased,data,fire:item=>onCreated(item)};
+  return {native,cancelled,erased,restarted,data,fire:item=>onCreated(item)};
 }
 test('an installer from the browser is handed to UDM and removed from browser downloads',async()=>{
   const h=harness();
@@ -50,6 +50,7 @@ test('turning auto-catch off leaves every download in the browser',async()=>{
 test('when UDM is not running the browser keeps the download',async()=>{
   const h=harness({nativeOk:false});
   await h.fire({id:9,url:'https://example.com/setup.exe'});
-  assert.deepEqual(h.cancelled,[]);
+  assert.deepEqual(h.cancelled,[9]);
+  assert.deepEqual(h.restarted,['https://example.com/setup.exe']);
   assert.match(h.data.lastError,/native messaging host/);
 });

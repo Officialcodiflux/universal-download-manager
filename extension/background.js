@@ -180,15 +180,26 @@ api.contextMenus.onClicked.addListener(async (info, tab) => {
 // Browser downloads of installers, archives, documents and media go to UDM instead.
 // If UDM is not running, the browser keeps the download.
 const AUTO_CATCH_FILE = /\.(exe|msi|zip|rar|7z|iso|dmg|pkg|apk|deb|rpm|tar|gz|bz2|xz|pdf|docx?|xlsx?|pptx?|mp4|mkv|avi|mov|webm|mp3|flac|wav|m4a|bin)$/i;
+// Downloads the extension hands back to the browser after UDM failed; they must not be caught again.
+const passThrough = new Set();
 api.downloads?.onCreated?.addListener(async item => {
   try {
     if (item.byExtensionId === api.runtime.id) return;
+    if ([item.url, item.finalUrl].filter(Boolean).some(value => passThrough.delete(value))) return;
     if ((await api.storage.local.get('autoCatch')).autoCatch === false) return;
     const url = httpUrl(item.finalUrl || item.url);
     if (!url || !AUTO_CATCH_FILE.test(new URL(url).pathname)) return;
-    await enqueue({url, referer: item.referrer || undefined}, undefined);
+    // Stop the browser copy first, so it cannot finish while UDM waits for confirmation.
     await api.downloads.cancel(item.id).catch(() => {});
     await api.downloads.erase({id: item.id}).catch(() => {});
+    try {
+      await enqueue({url, referer: item.referrer || undefined}, undefined);
+    } catch (error) {
+      // UDM could not take the download, so the browser downloads it instead.
+      passThrough.add(item.url);
+      await api.downloads.download({url: item.url}).catch(() => passThrough.delete(item.url));
+      throw error;
+    }
   } catch (error) {
     await api.storage.local.set({lastError: error.message}).catch(() => {});
   }

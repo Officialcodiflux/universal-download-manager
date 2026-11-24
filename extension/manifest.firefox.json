@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UDM - Universal Download Manager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Send links and detected direct video downloads to UDM for Windows.",
   "permissions": ["nativeMessaging", "storage", "contextMenus", "webRequest", "downloads"],
   "host_permissions": ["http://*/*", "https://*/*"],

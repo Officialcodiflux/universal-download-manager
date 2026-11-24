@@ -26,9 +26,9 @@ Function browserSetupPage
   !insertmacro MUI_HEADER_TEXT "Browser download buttons" "Add the published UDM extension."
   nsDialogs::Create 1018
   Pop $0
-  ${NSD_CreateLabel} 0 0 100% 42u "Setup can ask Chrome and Edge to add the official extension. Windows will request administrator permission for this step. Your browser will ask you to enable the extension, usually after restarting the browser."
+  ${NSD_CreateLabel} 0 0 100% 42u "Setup installs the official UDM extension for Chrome, Edge and Brave. Windows asks for administrator permission once. Restart those browsers after setup. Browsers may show that a policy manages the extension; you can still disable or remove it on the browser extensions page."
   Pop $0
-  ${NSD_CreateCheckbox} 0 55u 100% 22u "Set up Chrome and Edge download buttons"
+  ${NSD_CreateCheckbox} 0 55u 100% 22u "Install the UDM extension in Chrome, Edge and Brave"
   Pop $browserSetupCheckbox
   ${NSD_Check} $browserSetupCheckbox
   nsDialogs::Show

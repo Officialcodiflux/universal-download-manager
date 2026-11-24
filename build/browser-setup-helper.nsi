@@ -8,6 +8,9 @@ SilentInstall silent
 !define EXTENSION_ID "lpkacmofednpbgfiogbkbiifknnljiob"
 !define UPDATE_URL "https://clients2.google.com/service/update2/crx"
 !define OWNERS "Software\UDM\BrowserSetupOwners"
+!define POLICY_CHROME "Software\Policies\Google\Chrome\ExtensionInstallForcelist"
+!define POLICY_EDGE "Software\Policies\Microsoft\Edge\ExtensionInstallForcelist"
+!define POLICY_BRAVE "Software\Policies\BraveSoftware\Brave\ExtensionInstallForcelist"
 Var owner
 
 !macro registerBrowser ROOT
@@ -34,6 +37,23 @@ Var owner
   ${EndIf}
 !macroend
 
+; Forcelist policies make Chrome, Edge and Brave install the store extension without an
+; Enable prompt. Policy keys live in the 64-bit registry view, so switch to it first.
+!macro forcelistAdd KEY
+  SetRegView 64
+  ClearErrors
+  WriteRegStr HKLM "${KEY}" "UDM" "${EXTENSION_ID};${UPDATE_URL}"
+  ${If} ${Errors}
+    SetErrorLevel 1
+    Quit
+  ${EndIf}
+!macroend
+
+!macro forcelistRemove KEY
+  SetRegView 64
+  DeleteRegValue HKLM "${KEY}" "UDM"
+!macroend
+
 Section
   SetRegView 32
   ${GetParameters} $0
@@ -52,6 +72,9 @@ Section
     ${If} $1 == ""
       !insertmacro unregisterBrowser "Software\Google\Chrome\Extensions"
       !insertmacro unregisterBrowser "Software\Microsoft\Edge\Extensions"
+      !insertmacro forcelistRemove "${POLICY_CHROME}"
+      !insertmacro forcelistRemove "${POLICY_EDGE}"
+      !insertmacro forcelistRemove "${POLICY_BRAVE}"
       DeleteRegKey /ifempty HKLM "${OWNERS}"
     ${EndIf}
   ${Else}
@@ -63,6 +86,9 @@ Section
     ${EndIf}
     !insertmacro registerBrowser "Software\Google\Chrome\Extensions"
     !insertmacro registerBrowser "Software\Microsoft\Edge\Extensions"
+    !insertmacro forcelistAdd "${POLICY_CHROME}"
+    !insertmacro forcelistAdd "${POLICY_EDGE}"
+    !insertmacro forcelistAdd "${POLICY_BRAVE}"
   ${EndIf}
   SetErrorLevel 0
 SectionEnd
