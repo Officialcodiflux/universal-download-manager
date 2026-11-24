@@ -20,7 +20,7 @@ option you choose to the desktop app.
 
 - Choose a detected video or audio quality from the page.
 - Send links, video, and audio from the right-click menu.
-- Leave normal browser downloads in the browser; send a link to UDM
+- Send installer, archive and media downloads to UDM. Other browser downloads stay in the browser; links can also be sent to UDM from the right-click menu
   only when you choose one of the extension's download actions.
 - Keep detection and download history on your computer; no project analytics or
   advertising service receives your browsing activity.

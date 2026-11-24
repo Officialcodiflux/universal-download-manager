@@ -104,3 +104,10 @@ body.add-window,body.scheduler-window{background:#f0f0f0}
 .add-window #add-dialog>form>.dialog-title,.scheduler-window #scheduler-dialog>.dialog-title{display:none!important}
 .add-window #add-dialog>form>.dialog-body,.scheduler-window #scheduler-dialog>.dialog-body{flex:1;min-height:0;overflow:auto;padding:16px}
 .add-window #add-dialog>form>.dialog-footer,.scheduler-window #scheduler-dialog>.dialog-footer{flex:0 0 48px;border-top:1px solid #ccc;background:#f0f0f0}
+
+/* Right-click menu for download rows */
+.row-menu{position:fixed;z-index:1000;min-width:190px;padding:2px;background:#fff;border:1px solid #8b8b8b;box-shadow:2px 3px 8px #0004;display:flex;flex-direction:column}
+.row-menu[hidden]{display:none}
+.row-menu-item{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:0;box-shadow:none;padding:4px 24px;font:11px "Segoe UI",Tahoma,sans-serif;color:#111;white-space:nowrap}
+.row-menu-item:hover:not(:disabled),.row-menu-item:focus-visible{background:#cce8ff;outline:none}
+.row-menu-separator{border:0;border-top:1px solid #c8c8c8;margin:3px 2px}

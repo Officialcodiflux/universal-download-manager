@@ -177,6 +177,22 @@ api.contextMenus.onClicked.addListener(async (info, tab) => {
     if (tab?.id) await api.action.setBadgeText({tabId: tab.id, text: '!'});
   }
 });
+// Browser downloads of installers, archives, documents and media go to UDM instead.
+// If UDM is not running, the browser keeps the download.
+const AUTO_CATCH_FILE = /\.(exe|msi|zip|rar|7z|iso|dmg|pkg|apk|deb|rpm|tar|gz|bz2|xz|pdf|docx?|xlsx?|pptx?|mp4|mkv|avi|mov|webm|mp3|flac|wav|m4a|bin)$/i;
+api.downloads?.onCreated?.addListener(async item => {
+  try {
+    if (item.byExtensionId === api.runtime.id) return;
+    if ((await api.storage.local.get('autoCatch')).autoCatch === false) return;
+    const url = httpUrl(item.finalUrl || item.url);
+    if (!url || !AUTO_CATCH_FILE.test(new URL(url).pathname)) return;
+    await enqueue({url, referer: item.referrer || undefined}, undefined);
+    await api.downloads.cancel(item.id).catch(() => {});
+    await api.downloads.erase({id: item.id}).catch(() => {});
+  } catch (error) {
+    await api.storage.local.set({lastError: error.message}).catch(() => {});
+  }
+});
 api.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== api.runtime.id) return false;
   const task = async () => {
