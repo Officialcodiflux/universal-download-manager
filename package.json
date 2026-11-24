@@ -1,6 +1,6 @@
 {
   "name": "universal-download-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Windows download manager with segmented transfers and browser video capture",
   "main": "desktop/main.cjs",
   "private": true,

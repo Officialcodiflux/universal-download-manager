@@ -46,7 +46,9 @@ if (process.argv.includes('--native-host')) {
         await readyForDownloads;
         const reviewOnly = payload.startNow !== true && engine.settings.confirmBrowserDownloads;
         const ids = await engine.add({ ...payload, reviewOnly, reuseActive:true });
-        await handlers.openProgress({id:ids[0]});
+        // The download is already queued; a window problem must not fail the request.
+        try { await handlers.openProgress({id:ids[0]}); }
+        catch (error) { console.error('Could not open the download window:', error); }
         return ids;
       } }); }
       catch (error) { dialog.showErrorBox('Browser connection unavailable', error.message); }
@@ -205,7 +207,18 @@ if (process.argv.includes('--native-host')) {
           progress.on('closed',()=>progressWindows.delete(id));
           progress.webContents.setWindowOpenHandler(()=>({action:'deny'}));
           progress.webContents.on('will-navigate',event=>event.preventDefault());
-          await progress.loadFile(path.join(root,'renderer','index.html'),{query:{progress:id}});
+          const loadProgress=()=>progress.loadFile(path.join(root,'renderer','index.html'),{query:{progress:id}});
+          try { await loadProgress(); }
+          catch (error) {
+            console.error('Download window failed to load, retrying once:', error);
+            await new Promise(resolve=>setTimeout(resolve,300));
+            try { if(!progress.isDestroyed())await loadProgress(); }
+            catch (retryError) {
+              progressWindows.delete(id);
+              if(!progress.isDestroyed())progress.destroy();
+              throw new Error('UDM could not open the download window. The download is still in the list.');
+            }
+          }
           showProgress(progress);
         },
         add: data => engine.add(data),
@@ -303,7 +316,7 @@ if (process.argv.includes('--native-host')) {
         { label: 'Help', submenu: [ { label: 'Browser integration…', click: command('integration') }, { label: 'Check for updates…', click: () => updateController?.check({ manual: true }) }, { type: 'separator' }, { label: 'About UDM', click: async () => {
           const homepage = 'https://github.com/Officialcodiflux/universal-download-manager';
           const { response } = await dialog.showMessageBox(window, { type: 'none', icon: appIconPath, title: 'About UDM', message: `UDM - Universal Download Manager ${app.getVersion()}`,
-            detail: `Download Faster. Manage Everything.\n\nDeveloped by Codiflux.\n© ${new Date().getFullYear()} Codiflux. Released under the MIT License.\n\n${homepage}`,
+            detail: `Download Faster. Manage Everything.\n\nDeveloped by Codiflux.\nDeveloper: Muneeb Ali\nContact: +92-3395325053\n© ${new Date().getFullYear()} Codiflux. Released under the MIT License.\n\n${homepage}`,
             buttons: ['OK', 'Visit website'], defaultId: 0, cancelId: 0, noLink: true });
           if (response === 1) await shell.openExternal(homepage);
         } } ] }

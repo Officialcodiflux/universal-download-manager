@@ -56,6 +56,14 @@ function suggestedName(url, disposition) {
   }
   return 'download';
 }
+// Default folder per category under the download directory, so files sort
+// automatically (Video, Music, Compressed, Documents, Programs), like IDM.
+const CATEGORY_FOLDERS = { Video: 'Video', Audio: 'Music', Archives: 'Compressed', Documents: 'Documents', Programs: 'Programs' };
+const withDefaultCategoryFolders = (folders = {}, base) => {
+  const merged = { ...folders };
+  if (base) for (const [category, folder] of Object.entries(CATEGORY_FOLDERS)) if (!merged[category]) merged[category] = path.join(base, folder);
+  return merged;
+};
 const categoryFor = name => Object.entries(CATEGORY).find(([, re]) => re.test(name))?.[0] || 'Other';
 // Marks a transfer failure that another attempt cannot fix, or the wait the server asked for.
 const failure = (message, retryable = false, retryDelay = null, httpStatus = null) =>
@@ -68,7 +76,7 @@ export class DownloadEngine extends EventEmitter {
     this.dataDirectory = dataDirectory;
     this.statePath = path.join(dataDirectory, 'downloads.json');
     this.partsDirectory = path.join(dataDirectory, 'parts');
-    this.settings = { defaultDirectory: downloadDirectory, maxConcurrent: 3, connections: 8, speedLimitKbps: 0, categoryDirectories: {}, notifyOnComplete: true, revealOnComplete: false, confirmBrowserDownloads: true, startWithWindows: true };
+    this.settings = { defaultDirectory: downloadDirectory, maxConcurrent: 3, connections: 8, speedLimitKbps: 0, categoryDirectories: withDefaultCategoryFolders({}, downloadDirectory), notifyOnComplete: true, revealOnComplete: false, confirmBrowserDownloads: true, startWithWindows: true };
     this.downloads = [];
     this.jobs = new Map();
     this.persistChain = Promise.resolve();
@@ -131,6 +139,7 @@ export class DownloadEngine extends EventEmitter {
     }
     for (const key of ['notifyOnComplete', 'revealOnComplete', 'confirmBrowserDownloads', 'hideCompletionDialog', 'startWithWindows']) if (patch[key] !== undefined) { if (typeof patch[key] !== 'boolean') throw new Error(`Invalid ${key}.`); next[key] = patch[key]; }
     if (next.speedLimitKbps !== this.settings.speedLimitKbps) this.rateNext = 0;
+    next.categoryDirectories = withDefaultCategoryFolders(next.categoryDirectories, next.defaultDirectory);
     this.settings = next;
     if (save) return this.persist().then(() => { this.changed(); this.tick(); return this.snapshot(); });
   }
